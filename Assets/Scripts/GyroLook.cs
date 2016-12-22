@@ -18,7 +18,7 @@ public class GyroLook : MonoBehaviour {
 	}
 
 	public void startLooking () {
-		if (!startedOnce) {
+		//if (!startedOnce) {
 			Quaternion angle = new Quaternion (Input.gyro.attitude.x, Input.gyro.attitude.y, -Input.gyro.attitude.z, -Input.gyro.attitude.w);
 			Quaternion angle1 = Quaternion.Inverse (angle);
 			Vector3 angle2 = angle1.eulerAngles;
@@ -28,7 +28,7 @@ public class GyroLook : MonoBehaviour {
 			transform.rotation = Quaternion.Euler (angle3);
 			looking = true;
 			startedOnce = true;
-		}
+		//}
 	}
 
 	public void menuView () {

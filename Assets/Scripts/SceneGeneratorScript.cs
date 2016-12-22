@@ -149,9 +149,10 @@ public class SceneGeneratorScript : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-		time += Time.deltaTime;
-		elapsedTime += Time.deltaTime;
-		canvas.planeDistance = canvasDistance;
+		time += Time.deltaTime; //used to keep track of the time passed since start of current game
+		elapsedTime += Time.deltaTime; //elapsed time from last tile flip
+		//  For VR depth of crosshair
+		//canvas.planeDistance = canvasDistance;
 		if (gameMode == 0) {
 			if (tiles.Count == 32) {
 				//game over!
@@ -164,7 +165,8 @@ public class SceneGeneratorScript : MonoBehaviour {
 			}
 
 		}
-		if (Input.GetKeyDown (KeyCode.Escape)) {
+		// for VR escape key to access menu
+		/*if (Input.GetKeyDown (KeyCode.Escape)) {
 			if (button0.activeSelf) {
 				paused = false;
 				pauseplay.image.sprite = pauseImg;
@@ -180,62 +182,74 @@ public class SceneGeneratorScript : MonoBehaviour {
 				button1.SetActive (true);
 				button2.SetActive (true);
 			}
-		}
+		}*/
 		RaycastHit seen;
-		if (!gyro.startedOnce) {
-			for (int i = 0; i < Input.touchCount; ++i) {
-				if (Input.GetTouch (i).phase == TouchPhase.Began) {
-					// Construct a ray from the current touch coordinates
-					Ray ray = Camera.main.ScreenPointToRay (Input.GetTouch (i).position);
-					if (Physics.Raycast (ray, out seen, 100)) {
-						if (seen.collider.gameObject.tag == "button") {
-							buttonScript button = seen.collider.gameObject.GetComponent<buttonScript> ();
-							button.startGame ();
 
-							crosshair.SetActive (true);
-							gyro.startLooking ();
-							pauseplay.gameObject.SetActive (true);
-							paused = false;
+		//	Check if pause/play button was hit
+		Vector2 touchSpot = new Vector2 (0, 0);
+		bool touchedNow = false;
+		float butX = pauseplay.transform.position.x;
+		float butY = pauseplay.transform.position.y;
+		for (int i = 0; i < Input.touchCount; ++i) {
+			if (Input.GetTouch (i).phase == TouchPhase.Began) {
+				// Construct a ray from the current touch coordinates
+				touchSpot = Input.GetTouch (i).position;
+				touchedNow = true;
+			}
+		}
+		//  Actual check mentioned above
+		if (touchedNow && touchSpot.x > butX - 40 && touchSpot.y > butY - 40) {
+			if (button0.activeSelf) {
+				paused = false;
+				pauseplay.image.sprite = pauseImg;
+				gyro.startLooking ();
+				crosshair.SetActive (true);
+				button0.SetActive (false);
+				button1.SetActive (false);
+				button2.SetActive (false);
+			} else if (!paused) {
+				paused = true;
+				pauseplay.image.sprite = playImg;
+				//gyro.menuView ();
+				crosshair.SetActive(false);
+				button0.SetActive (true);
+				button1.SetActive (true);
+				button2.SetActive (true);
+			}
+		}
+		// 	Pause/play button not clicked, check if button or tile was clicked
+		else {
+			//  buttons active so not paying attention to tiles
+			if (button0.activeSelf) {
+				for (int i = 0; i < Input.touchCount; ++i) {
+					if (Input.GetTouch (i).phase == TouchPhase.Began) {
+						// Construct a ray from the current touch coordinates
+						Ray ray = Camera.main.ScreenPointToRay (Input.GetTouch (i).position);
+						if (Physics.Raycast (ray, out seen, 100)) {
+							if (seen.collider.gameObject.tag == "button") {
+								buttonScript button = seen.collider.gameObject.GetComponent<buttonScript> ();
+								button.startGame ();
+			
+								crosshair.SetActive (true);
+								gyro.startLooking ();
+								pauseplay.gameObject.SetActive (true);
+								paused = false;
+								pauseplay.image.sprite = pauseImg;
+							}
 						}
 					}
 				}
-			}
-
-		} else {
-			Vector2 touchSpot = new Vector2 (0, 0);
-			bool touchedNow = false;
-			float butX = pauseplay.transform.position.x;
-			float butY = pauseplay.transform.position.y;
-			for (int i = 0; i < Input.touchCount; ++i) {
-				if (Input.GetTouch (i).phase == TouchPhase.Began) {
-					// Construct a ray from the current touch coordinates
-					touchSpot = Input.GetTouch (i).position;
-					touchedNow = true;
-				}
-			}
-			if (touchedNow && touchSpot.x > butX - 40 && touchSpot.y > butY - 40) {
-				if (button0.activeSelf) {
-					paused = false;
-					pauseplay.image.sprite = pauseImg;
-					gyro.startLooking ();
-					button0.SetActive (false);
-					button1.SetActive (false);
-					button2.SetActive (false);
-				} else if (!paused) {
-					paused = true;
-					pauseplay.image.sprite = playImg;
-					gyro.menuView ();
-					button0.SetActive (true);
-					button1.SetActive (true);
-					button2.SetActive (true);
-				}
-
-			} else {
+			
+			} 
+			else {
+				//  button not active so we only worry about tiles
 				Ray raydirection = new Ray (Camera.main.transform.position, Camera.main.transform.forward);
 				bool hit = Input.GetMouseButtonDown (0) || Input.GetKey (KeyCode.Joystick1Button0)
-			          || Input.GetKeyDown (KeyCode.Space) || Input.GetMouseButtonDown (1);
+				         || Input.GetKeyDown (KeyCode.Space) || Input.GetMouseButtonDown (1);
 				if (Physics.Raycast (raydirection, out seen, 100)) {				
 					if (hit) {
+						// This if block wouldn't run because button isn't active
+						/*
 						if (seen.collider.gameObject.tag == "button") {
 							pauseplay.image.sprite = pauseImg;
 							buttonScript button = seen.collider.gameObject.GetComponent<buttonScript> ();
@@ -243,15 +257,21 @@ public class SceneGeneratorScript : MonoBehaviour {
 							gyro.startLooking ();
 							paused = false;
 						}
+						*/
+						if (paused) {
+							Debug.LogError ("paused shouldn't be true here ever!!!");
+						}
 						if (!paused && seen.collider.gameObject.tag == "tile") {
 							TileScript seenTile = seen.collider.gameObject.GetComponent<TileScript> ();
-							if (Input.GetMouseButtonDown (1))
+							// For VR right click to change color
+							/*if (Input.GetMouseButtonDown (1))
 								seenTile.changeColor ();
-							else
-								seenTile.resetColor ();
+							else*/
+							seenTile.resetColor ();
 						}
 					}
-					SceneGeneratorScript.canvasDistance = seen.distance - 0.4f;
+					//  For VR depth of crosshair
+					//SceneGeneratorScript.canvasDistance = seen.distance - 0.4f;
 				}
 			}
 		}
