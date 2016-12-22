@@ -31,6 +31,7 @@ public class SceneGeneratorScript : MonoBehaviour {
 	private float time = 0;
 	private float elapsedTime = 0f;
 	public GameObject crosshair;
+	public GameObject paintCrosshair;
 	public Image crosshair1;
 	public Image crosshair2;
 
@@ -204,6 +205,7 @@ public class SceneGeneratorScript : MonoBehaviour {
 				pauseplay.image.sprite = pauseImg;
 				gyro.startLooking ();
 				crosshair.SetActive (true);
+				paintCrosshair.SetActive (true);
 				button0.SetActive (false);
 				button1.SetActive (false);
 				button2.SetActive (false);
@@ -212,6 +214,7 @@ public class SceneGeneratorScript : MonoBehaviour {
 				pauseplay.image.sprite = playImg;
 				//gyro.menuView ();
 				crosshair.SetActive(false);
+				paintCrosshair.SetActive (false);
 				button0.SetActive (true);
 				button1.SetActive (true);
 				button2.SetActive (true);
@@ -231,6 +234,7 @@ public class SceneGeneratorScript : MonoBehaviour {
 								button.startGame ();
 			
 								crosshair.SetActive (true);
+								paintCrosshair.SetActive (true);
 								gyro.startLooking ();
 								pauseplay.gameObject.SetActive (true);
 								paused = false;
